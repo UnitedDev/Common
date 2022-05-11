@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.kohei</groupId>
-    <artifactId>Common</artifactId>
+    <artifactId>common</artifactId>
     <version>1.0.0</version>
 
     <properties>
@@ -33,5 +33,13 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>fr.kohei</id>
+            <name>common</name>
+            <url>https://maven.pkg.github.com/KoheiDev/Common</url>
+        </repository>
+    </distributionManagement>
 
 </project>
