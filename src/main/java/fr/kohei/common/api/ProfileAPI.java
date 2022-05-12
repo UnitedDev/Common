@@ -1,11 +1,10 @@
-package fr.arashi.common.api;
+package fr.kohei.common.api;
 
-import fr.arashi.common.cache.ProfileData;
+import fr.kohei.common.cache.ProfileData;
 
 import java.util.UUID;
 
 public interface ProfileAPI {
-
 	/**
 	 * @param uuid of the player
 	 * @return the players data

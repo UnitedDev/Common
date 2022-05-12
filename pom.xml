@@ -6,7 +6,7 @@
 
     <groupId>fr.kohei</groupId>
     <artifactId>common</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -36,9 +36,9 @@
 
     <distributionManagement>
         <repository>
-            <id>fr.kohei</id>
-            <name>common</name>
-            <url>https://maven.pkg.github.com/KoheiDev/Common</url>
+            <id>kohei</id>
+            <name>Common</name>
+            <url>https://maven.pkg.github.com/KoheiDev/Common/</url>
         </repository>
     </distributionManagement>
 

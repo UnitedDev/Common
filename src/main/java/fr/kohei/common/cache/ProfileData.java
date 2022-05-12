@@ -1,10 +1,8 @@
-package fr.arashi.common.cache;
+package fr.kohei.common.cache;
 
-import fr.arashi.common.RedisProvider;
-import fr.arashi.common.api.CommonAPI;
+import fr.kohei.common.RedisProvider;
 import lombok.Getter;
 import lombok.Setter;
-import org.redisson.spring.support.RedissonGenericObjectDefinitionParser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,7 +11,6 @@ import java.util.List;
 @Getter
 @Setter
 public class ProfileData implements Serializable {
-
 	private String displayName;
 	private String rankName;
 	private int coins, hosts;

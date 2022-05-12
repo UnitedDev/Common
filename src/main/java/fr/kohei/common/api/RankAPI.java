@@ -1,6 +1,6 @@
-package fr.arashi.common.api;
+package fr.kohei.common.api;
 
-import fr.arashi.common.cache.Rank;
+import fr.kohei.common.cache.Rank;
 
 import java.util.Optional;
 import java.util.Set;

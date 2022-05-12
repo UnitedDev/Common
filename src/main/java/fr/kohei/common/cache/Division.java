@@ -1,4 +1,4 @@
-package fr.arashi.common.cache;
+package fr.kohei.common.cache;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 @Getter
 @RequiredArgsConstructor
 public enum Division {
-
     AUCUNE("&cAucune", 150, profile -> {
         profile.setHosts(profile.getHosts() + 1);
         profile.setCoins(profile.getCoins() + 300);
@@ -47,5 +46,4 @@ public enum Division {
     private final int experience;
     private final Consumer<ProfileData> consumer;
     private final String message;
-
 }

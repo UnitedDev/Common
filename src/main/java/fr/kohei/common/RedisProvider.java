@@ -1,11 +1,12 @@
-package fr.arashi.common;
+package fr.kohei.common;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.arashi.common.api.CommonAPI;
-import fr.arashi.common.cache.BucketServerCache;
-import fr.arashi.common.cache.ProfileData;
-import fr.arashi.common.cache.Rank;
+import fr.kohei.common.api.CommonAPI;
+import fr.kohei.common.cache.BucketServerCache;
+import fr.kohei.common.cache.ProfileData;
+import fr.kohei.common.cache.PunishmentData;
+import fr.kohei.common.cache.Rank;
 import lombok.Getter;
 import org.redisson.Redisson;
 import org.redisson.api.RMap;
@@ -17,12 +18,12 @@ import java.util.stream.Collectors;
 
 @Getter
 public class RedisProvider implements CommonAPI {
-
 	public static RedisProvider redisProvider;
 
 	public final Gson GSON = new GsonBuilder().create();
 
 	public final RMap<UUID, String> playersGson;
+	public final RSet<String> punishmentsGson;
 	private final Set<Rank> ranks;
 	private final RSet<String> ranksGson;
 	private final RedissonClient client;
@@ -30,12 +31,12 @@ public class RedisProvider implements CommonAPI {
 	private final ProfileData defaultProfile;
 
 	public RedisProvider() {
-
 		redisProvider = this;
 		this.client = Redisson.create();
 
 		this.playersGson = client.getMap("players");
 		this.ranksGson = client.getSet("ranks");
+		this.punishmentsGson = client.getSet("punishments");
 		this.ranks = new HashSet<>();
 
 		ranksGson.readAll().forEach(s -> ranks.add(GSON.fromJson(s, Rank.class)));
@@ -50,7 +51,6 @@ public class RedisProvider implements CommonAPI {
 		} else {
 			this.defaultProfile = new ProfileData(defaultRank.get(), 0, 0, "fr-FR");
 		}
-
 	}
 
 	@Override
@@ -100,7 +100,34 @@ public class RedisProvider implements CommonAPI {
 	}
 
 	@Override
-	public void saveProfile(UUID uuid, ProfileData data){
+	public void saveProfile(UUID uuid, ProfileData data) {
 		playersGson.putAsync(uuid, GSON.toJson(data));
+	}
+
+	@Override
+	public List<PunishmentData> getPunishments() {
+		List<PunishmentData> punishments = new ArrayList<>();
+
+		for (String s : punishmentsGson.readAllAsync().getNow()) {
+			punishments.add(GSON.fromJson(s, PunishmentData.class));
+		}
+
+		return punishments;
+	}
+
+	@Override
+	public List<PunishmentData> getPunishments(UUID uuid) {
+		return getPunishments().stream().filter(punishmentData -> punishmentData.getPunished().equals(uuid)).collect(Collectors.toList());
+	}
+
+	@Override
+	public void updatePunishment(PunishmentData punishmentData, UUID uuid) {
+		deletePunishment(punishmentData);
+		punishmentsGson.addAsync(GSON.toJson(punishmentData));
+	}
+
+	@Override
+	public void deletePunishment(PunishmentData punishmentData) {
+		punishmentsGson.removeIf(s -> GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId()));
 	}
 }

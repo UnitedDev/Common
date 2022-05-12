@@ -1,7 +1,7 @@
-package fr.arashi.common.api;
+package fr.kohei.common.api;
 
-import fr.arashi.common.RedisProvider;
-import fr.arashi.common.cache.BucketServerCache;
+import fr.kohei.common.RedisProvider;
+import fr.kohei.common.cache.BucketServerCache;
 
 import java.util.UUID;
 
