@@ -7,11 +7,16 @@ import fr.kohei.common.cache.BucketServerCache;
 import fr.kohei.common.cache.ProfileData;
 import fr.kohei.common.cache.PunishmentData;
 import fr.kohei.common.cache.Rank;
+import fr.kohei.common.messaging.Pidgin;
+import fr.kohei.common.messaging.list.packets.ProfileUpdatePacket;
+import fr.kohei.common.messaging.list.packets.PunishmentUpdatePacket;
+import fr.kohei.common.messaging.list.packets.RankUpdatePacket;
 import lombok.Getter;
 import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
+import redis.clients.jedis.JedisPool;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,24 +27,34 @@ public class RedisProvider implements CommonAPI {
 
 	public final Gson GSON = new GsonBuilder().create();
 
+	public final HashMap<UUID, ProfileData> players;
+	public final List<PunishmentData> punishments;
+	public final List<Rank> ranks;
+
 	public final RMap<UUID, String> playersGson;
 	public final RSet<String> punishmentsGson;
-	private final Set<Rank> ranks;
 	private final RSet<String> ranksGson;
 	private final RedissonClient client;
 
+	private final Pidgin messaging;
 	private final ProfileData defaultProfile;
 
 	public RedisProvider() {
 		redisProvider = this;
 		this.client = Redisson.create();
+		this.messaging = new Pidgin("kohei-dev");
 
 		this.playersGson = client.getMap("players");
 		this.ranksGson = client.getSet("ranks");
 		this.punishmentsGson = client.getSet("punishments");
-		this.ranks = new HashSet<>();
+
+		this.players = new HashMap<>();
+		this.punishments = new ArrayList<>();
+		this.ranks = new ArrayList<>();
 
 		ranksGson.readAll().forEach(s -> ranks.add(GSON.fromJson(s, Rank.class)));
+		punishmentsGson.readAll().forEach(s -> punishments.add(GSON.fromJson(s, PunishmentData.class)));
+		playersGson.readAllMap().forEach((uuid, s) -> players.put(uuid, GSON.fromJson(s, ProfileData.class)));
 
 		Optional<Rank> defaultRank = ranks.stream().filter(tk -> tk.token().equalsIgnoreCase("default")).findFirst();
 
@@ -64,55 +79,43 @@ public class RedisProvider implements CommonAPI {
 	}
 
 	@Override
-	public Set<Rank> getRanks() {
-		return ranks;
-	}
-
-	@Override
 	public Optional<Rank> getRank(String token){
 		return ranks.stream().filter(rk -> rk.token().equalsIgnoreCase(token)).findFirst();
 	}
 
 	@Override
-	public Set<Rank> getRankUp(int minimum){
-		return ranks.stream().filter(rk -> rk.permissionPower() >= minimum).collect(Collectors.toSet());
-	}
-
-	@Override
 	public void addRank(Rank rank) {
 		ranks.add(rank);
-		ranksGson.add(GSON.toJson(rank));
+		ranksGson.addAsync(GSON.toJson(rank));
+
+		getMessaging().sendPacket(new RankUpdatePacket(rank, false));
 	}
 
 	@Override
 	public void removeRank(String token) {
+		Rank rank = getRank(token).orElse(null);
+
 		ranks.removeIf(rk -> (rk.token().equalsIgnoreCase(token)));
 		ranksGson.removeIf(rk -> (GSON.fromJson(rk, Rank.class).token().equalsIgnoreCase(token)));
+
+		getMessaging().sendPacket(new RankUpdatePacket(rank, true));
 	}
 
 	@Override
 	public ProfileData getProfile(UUID uuid) {
-		if (!playersGson.containsKeyAsync(uuid).getNow()) {
-			playersGson.putAsync(uuid, GSON.toJson(defaultProfile));
+		if (!players.containsKey(uuid)) {
+			saveProfile(uuid, defaultProfile);
 		}
 
-		return GSON.fromJson(playersGson.getAsync(uuid).getNow(), ProfileData.class);
+		return players.get(uuid);
 	}
 
 	@Override
 	public void saveProfile(UUID uuid, ProfileData data) {
+		players.put(uuid, data);
 		playersGson.putAsync(uuid, GSON.toJson(data));
-	}
 
-	@Override
-	public List<PunishmentData> getPunishments() {
-		List<PunishmentData> punishments = new ArrayList<>();
-
-		for (String s : punishmentsGson.readAllAsync().getNow()) {
-			punishments.add(GSON.fromJson(s, PunishmentData.class));
-		}
-
-		return punishments;
+		getMessaging().sendPacket(new ProfileUpdatePacket(uuid, data));
 	}
 
 	@Override
@@ -121,13 +124,21 @@ public class RedisProvider implements CommonAPI {
 	}
 
 	@Override
-	public void updatePunishment(PunishmentData punishmentData, UUID uuid) {
-		deletePunishment(punishmentData);
-		punishmentsGson.addAsync(GSON.toJson(punishmentData));
+	public void updatePunishment(PunishmentData punishmentData) {
+		punishments.removeIf(pd -> pd.getPunishmentId().equals(punishmentData.getPunishmentId()));
+		punishmentsGson.removeIf(s -> GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId()));
+
+		punishments.add(punishmentData);
+		punishmentsGson.add(GSON.toJson(punishmentData));
+
+		getMessaging().sendPacket(new PunishmentUpdatePacket(punishmentData, false));
 	}
 
 	@Override
 	public void deletePunishment(PunishmentData punishmentData) {
+		punishments.removeIf(pd -> pd.getPunishmentId().equals(punishmentData.getPunishmentId()));
 		punishmentsGson.removeIf(s -> GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId()));
+
+		getMessaging().sendPacket(new PunishmentUpdatePacket(punishmentData, true));
 	}
 }

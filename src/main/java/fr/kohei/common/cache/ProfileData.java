@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Getter
@@ -20,6 +21,7 @@ public class ProfileData implements Serializable {
 	private boolean friendRequests;
 	private boolean privateMessages;
 	private boolean notifications;
+	private final HashMap<String, Object> serversData;
 
 	private Division division;
 	private int experience;
@@ -35,6 +37,7 @@ public class ProfileData implements Serializable {
 		this.privateMessages = true;
 		this.notifications = true;
 		this.division = Division.AUCUNE;
+		this.serversData = new HashMap<>();
 	}
 
 	public Rank getRank() {

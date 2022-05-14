@@ -10,7 +10,7 @@ public interface PunishmentAPI {
 
     List<PunishmentData> getPunishments(UUID uuid);
 
-    void updatePunishment(PunishmentData punishmentData, UUID uuid);
+    void updatePunishment(PunishmentData punishmentData);
 
     void deletePunishment(PunishmentData punishmentData);
 }
