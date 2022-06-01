@@ -1,15 +1,13 @@
 package fr.kohei.common.messaging;
 
 import com.google.gson.Gson;
-import fr.kohei.common.messaging.list.packets.ProfileUpdatePacket;
-import fr.kohei.common.messaging.list.packets.PunishmentUpdatePacket;
-import fr.kohei.common.messaging.list.packets.RankUpdatePacket;
-import fr.kohei.common.messaging.list.subscribers.ProfileUpdateSubscriber;
-import fr.kohei.common.messaging.list.subscribers.PunishmentUpdateSubscriber;
-import fr.kohei.common.messaging.list.subscribers.RankUpdateSubscriber;
+import fr.kohei.common.RedisProvider;
+import fr.kohei.common.messaging.list.packets.*;
+import fr.kohei.common.messaging.list.subscribers.*;
 import fr.kohei.common.messaging.pigdin.IncomingPacketHandler;
 import fr.kohei.common.messaging.pigdin.Packet;
 import fr.kohei.common.messaging.pigdin.PacketListener;
+import lombok.Getter;
 import org.redisson.Redisson;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
@@ -19,8 +17,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
+@Getter
 public class Pidgin {
 
     private final RedissonClient client;
@@ -43,49 +41,52 @@ public class Pidgin {
         this.registerAdapter(ProfileUpdatePacket.class, new ProfileUpdateSubscriber());
         this.registerAdapter(PunishmentUpdatePacket.class, new PunishmentUpdateSubscriber());
         this.registerAdapter(RankUpdatePacket.class, new RankUpdateSubscriber());
+        this.registerAdapter(LobbyUpdatePacket.class, new LobbyUpdateSubscriber());
+        this.registerAdapter(UHCUpdatePacket.class, new UHCUpdateSubscriber());
+        this.registerAdapter(CTFUpdatePacket.class, new CTFUpdateSubscriber());
     }
 
     public void registerAdapter(Class<? extends Packet> clazz, PacketListener listener) {
         this.adapters.put(clazz, listener);
-        String uuid = UUID.randomUUID().toString();
+        String uuid = clazz.getSimpleName();
         this.types.put(clazz, uuid);
         this.cTypes.put(uuid, clazz);
         System.out.println("[MESSAGING] Registered new packet " + clazz + " with listener " + listener);
     }
 
     public void sendPacket(Packet packet) {
-        this.topic.publish(types.get(packet.getClass()) + ";" + gson.toJson(packet));
+        RedisProvider.redisProvider.getExecutor().execute(() -> this.topic.publish(types.get(packet.getClass()) + ";" + gson.toJson(packet)));
     }
 
     private class MessagingListener implements MessageListener<String> {
         @Override
         public void onMessage(CharSequence charSequence, String s) {
-            try {
-                String id = s.split(";")[0];
-                Packet packet = gson.fromJson(s.split(";")[1], cTypes.get(id));
+            RedisProvider.redisProvider.getExecutor().execute(() -> {
+                try {
+                    String id = s.split(";")[0];
+                    Packet packet = gson.fromJson(s.split(";")[1], cTypes.get(id));
 
-                Class<? extends Packet> clazz = null;
-                for (Map.Entry<Class<? extends Packet>, String> entry : types.entrySet()) {
-                    Class<? extends Packet> aClass = entry.getKey();
-                    String s1 = entry.getValue();
-                    if (s1.equalsIgnoreCase(id)) clazz = aClass;
-                }
+                    Class<? extends Packet> clazz = null;
+                    for (Map.Entry<Class<? extends Packet>, String> entry : types.entrySet()) {
+                        Class<? extends Packet> aClass = entry.getKey();
+                        String s1 = entry.getValue();
+                        if (s1.equalsIgnoreCase(id)) clazz = aClass;
+                    }
 
-                PacketListener listener = adapters.get(clazz);
+                    PacketListener listener = adapters.get(clazz);
 
-                for (Method m : listener.getClass().getDeclaredMethods()) {
-                    if (m.getDeclaredAnnotation(IncomingPacketHandler.class) != null) {
-                        try {
-                            m.invoke(listener, packet);
-                        } catch (IllegalAccessException | InvocationTargetException e) {
-                            e.printStackTrace();
+                    for (Method m : listener.getClass().getDeclaredMethods()) {
+                        if (m.getDeclaredAnnotation(IncomingPacketHandler.class) != null) {
+                            try {
+                                m.invoke(listener, packet);
+                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {
-                System.out.println("Failed to receive packet " + s);
-            }
+            });
         }
     }
-
 }
