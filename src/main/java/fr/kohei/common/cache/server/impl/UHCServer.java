@@ -5,6 +5,7 @@ import fr.kohei.common.cache.server.ServerType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +28,7 @@ public class UHCServer implements IServer {
     private final int borderTimer;
     private final List<String> enabledScenarios;
     private final List<UUID> uuids;
+    private final List<UUID> whitelistedPlayers;
 
     @Override
     public boolean isWhilelisted() {
@@ -57,4 +59,6 @@ public class UHCServer implements IServer {
 
         private final String name;
     }
+
+
 }
