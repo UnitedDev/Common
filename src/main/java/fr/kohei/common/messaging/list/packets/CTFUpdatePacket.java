@@ -1,18 +1,14 @@
 package fr.kohei.common.messaging.list.packets;
 
-import fr.kohei.common.cache.ProfileData;
+import fr.kohei.common.cache.server.CTFServer;
 import fr.kohei.common.messaging.pigdin.Packet;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.UUID;
-
 @Getter
 @RequiredArgsConstructor
-public class ProfileUpdatePacket implements Packet {
+public class CTFUpdatePacket implements Packet {
 
-    private final UUID uuid;
-    private final ProfileData profileData;
+    private final CTFServer ctfServer;
 
 }
-

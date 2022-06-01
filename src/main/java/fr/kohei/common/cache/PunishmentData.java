@@ -17,9 +17,9 @@ public class PunishmentData {
     private final UUID executor;
     private final String reason;
     private final Date date;
-    private final long duration;
+    private long duration;
     private final List<PunishmentEdit> edits;
-    private final PunishmentType punishmentType;
+    private PunishmentType punishmentType;
 
     public PunishmentData(PunishmentType punishmentType, UUID punished, UUID executor, String reason, long duration) {
         this.punishmentType = punishmentType;

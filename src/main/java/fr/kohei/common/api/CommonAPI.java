@@ -2,6 +2,7 @@ package fr.kohei.common.api;
 
 import fr.kohei.common.RedisProvider;
 import fr.kohei.common.cache.BucketServerCache;
+import fr.kohei.common.cache.ServerCache;
 import fr.kohei.common.messaging.Pidgin;
 
 import java.util.UUID;
@@ -25,6 +26,8 @@ public interface CommonAPI extends ProfileAPI, RankAPI, PunishmentAPI {
 	 * @param uuid is the player uuid
 	 */
 	void deleteAllDataFromAPlayer(UUID uuid);
+
+	ServerCache getServerCache();
 
 	Pidgin getMessaging();
 

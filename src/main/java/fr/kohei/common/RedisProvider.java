@@ -3,10 +3,7 @@ package fr.kohei.common;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.kohei.common.api.CommonAPI;
-import fr.kohei.common.cache.BucketServerCache;
-import fr.kohei.common.cache.ProfileData;
-import fr.kohei.common.cache.PunishmentData;
-import fr.kohei.common.cache.Rank;
+import fr.kohei.common.cache.*;
 import fr.kohei.common.messaging.Pidgin;
 import fr.kohei.common.messaging.list.packets.ProfileUpdatePacket;
 import fr.kohei.common.messaging.list.packets.PunishmentUpdatePacket;
@@ -16,9 +13,9 @@ import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
-import redis.clients.jedis.JedisPool;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -27,9 +24,9 @@ public class RedisProvider implements CommonAPI {
 
 	public final Gson GSON = new GsonBuilder().create();
 
-	public final HashMap<UUID, ProfileData> players;
-	public final List<PunishmentData> punishments;
-	public final List<Rank> ranks;
+	public final ConcurrentMap<UUID, ProfileData> players;
+	public final Queue<PunishmentData> punishments;
+	public final Queue<Rank> ranks;
 
 	public final RMap<UUID, String> playersGson;
 	public final RSet<String> punishmentsGson;
@@ -38,6 +35,8 @@ public class RedisProvider implements CommonAPI {
 
 	private final Pidgin messaging;
 	private final ProfileData defaultProfile;
+	private final Executor executor;
+	private final ServerCache serverCache;
 
 	public RedisProvider() {
 		redisProvider = this;
@@ -47,10 +46,12 @@ public class RedisProvider implements CommonAPI {
 		this.playersGson = client.getMap("players");
 		this.ranksGson = client.getSet("ranks");
 		this.punishmentsGson = client.getSet("punishments");
+		this.serverCache = new ServerCache();
 
-		this.players = new HashMap<>();
-		this.punishments = new ArrayList<>();
-		this.ranks = new ArrayList<>();
+		this.players = new ConcurrentHashMap<>();
+		this.punishments = new ConcurrentLinkedQueue<>();
+		this.ranks = new ConcurrentLinkedQueue<>();
+		this.executor = Executors.newScheduledThreadPool(3);
 
 		ranksGson.readAll().forEach(s -> ranks.add(GSON.fromJson(s, Rank.class)));
 		punishmentsGson.readAll().forEach(s -> punishments.add(GSON.fromJson(s, PunishmentData.class)));
@@ -86,7 +87,7 @@ public class RedisProvider implements CommonAPI {
 	@Override
 	public void addRank(Rank rank) {
 		ranks.add(rank);
-		ranksGson.addAsync(GSON.toJson(rank));
+		this.executor.execute(() -> ranksGson.add(GSON.toJson(rank)));
 
 		getMessaging().sendPacket(new RankUpdatePacket(rank, false));
 	}
@@ -96,7 +97,8 @@ public class RedisProvider implements CommonAPI {
 		Rank rank = getRank(token).orElse(null);
 
 		ranks.removeIf(rk -> (rk.token().equalsIgnoreCase(token)));
-		ranksGson.removeIf(rk -> (GSON.fromJson(rk, Rank.class).token().equalsIgnoreCase(token)));
+
+		this.executor.execute(() -> ranksGson.removeIf(rk -> (GSON.fromJson(rk, Rank.class).token().equalsIgnoreCase(token))));
 
 		getMessaging().sendPacket(new RankUpdatePacket(rank, true));
 	}
@@ -126,10 +128,11 @@ public class RedisProvider implements CommonAPI {
 	@Override
 	public void updatePunishment(PunishmentData punishmentData) {
 		punishments.removeIf(pd -> pd.getPunishmentId().equals(punishmentData.getPunishmentId()));
-		punishmentsGson.removeIf(s -> GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId()));
+		this.executor.execute(() -> punishmentsGson.removeIf(s ->
+				GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId())));
 
 		punishments.add(punishmentData);
-		punishmentsGson.add(GSON.toJson(punishmentData));
+		punishmentsGson.addAsync(GSON.toJson(punishmentData));
 
 		getMessaging().sendPacket(new PunishmentUpdatePacket(punishmentData, false));
 	}
@@ -137,8 +140,16 @@ public class RedisProvider implements CommonAPI {
 	@Override
 	public void deletePunishment(PunishmentData punishmentData) {
 		punishments.removeIf(pd -> pd.getPunishmentId().equals(punishmentData.getPunishmentId()));
-		punishmentsGson.removeIf(s -> GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId()));
+		this.executor.execute(() -> punishmentsGson.removeIf(s -> GSON.fromJson(s, PunishmentData.class).getPunishmentId().equals(punishmentData.getPunishmentId())));
 
 		getMessaging().sendPacket(new PunishmentUpdatePacket(punishmentData, true));
+	}
+
+	public List<Rank> getRanks() {
+		return new ArrayList<>(ranks);
+	}
+
+	public List<PunishmentData> getPunishments() {
+		return new ArrayList<>(punishments);
 	}
 }

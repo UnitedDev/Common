@@ -21,10 +21,11 @@ public class ProfileData implements Serializable {
 	private boolean friendRequests;
 	private boolean privateMessages;
 	private boolean notifications;
-	private final HashMap<String, Object> serversData;
-
+	private final HashMap<String, Integer> checkViolations;
 	private Division division;
 	private int experience;
+
+	private final HashMap<String, Object> serversData;
 
 	public ProfileData(Rank rank, int coins, int hosts, String language) {
 		this.rankName = rank.token();
@@ -38,6 +39,7 @@ public class ProfileData implements Serializable {
 		this.notifications = true;
 		this.division = Division.AUCUNE;
 		this.serversData = new HashMap<>();
+		this.checkViolations = new HashMap<>();
 	}
 
 	public Rank getRank() {
