@@ -1,5 +1,7 @@
-package fr.kohei.common.cache.server;
+package fr.kohei.common.cache.server.impl;
 
+import fr.kohei.common.cache.server.IServer;
+import fr.kohei.common.cache.server.ServerType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @RequiredArgsConstructor
-public class UHCServer {
+public class UHCServer implements IServer {
 
     private final int port;
     private final ServerType type;
@@ -25,6 +27,16 @@ public class UHCServer {
     private final int borderTimer;
     private final List<String> enabledScenarios;
     private final List<UUID> uuids;
+
+    @Override
+    public boolean isWhilelisted() {
+        return true;
+    }
+
+    @Override
+    public fr.kohei.common.cache.server.ServerType type() {
+        return fr.kohei.common.cache.server.ServerType.UHC;
+    }
 
     @Getter
     @RequiredArgsConstructor

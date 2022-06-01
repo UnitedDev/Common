@@ -1,6 +1,6 @@
 package fr.kohei.common.messaging.list.packets;
 
-import fr.kohei.common.cache.server.CTFServer;
+import fr.kohei.common.cache.server.impl.CTFServer;
 import fr.kohei.common.messaging.pigdin.Packet;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

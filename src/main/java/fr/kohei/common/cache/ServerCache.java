@@ -1,9 +1,9 @@
 package fr.kohei.common.cache;
 
 import fr.kohei.common.RedisProvider;
-import fr.kohei.common.cache.server.CTFServer;
-import fr.kohei.common.cache.server.LobbyServer;
-import fr.kohei.common.cache.server.UHCServer;
+import fr.kohei.common.cache.server.impl.CTFServer;
+import fr.kohei.common.cache.server.impl.LobbyServer;
+import fr.kohei.common.cache.server.impl.UHCServer;
 import lombok.Getter;
 import lombok.Setter;
 
