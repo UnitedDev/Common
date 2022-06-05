@@ -18,7 +18,7 @@ public class LobbyServer implements IServer {
     private final HashMap<String, Integer> ranks;
 
     @Override
-    public boolean isWhilelisted() {
+    public boolean isWhitelisted() {
         return false;
     }
 

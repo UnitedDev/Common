@@ -16,7 +16,7 @@ public class CTFServer implements IServer {
     private final ServerStatus status;
 
     @Override
-    public boolean isWhilelisted() {
+    public boolean isWhitelisted() {
         return false;
     }
 

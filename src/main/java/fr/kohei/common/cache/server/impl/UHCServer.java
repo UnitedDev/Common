@@ -31,8 +31,8 @@ public class UHCServer implements IServer {
     private final List<UUID> whitelistedPlayers;
 
     @Override
-    public boolean isWhilelisted() {
-        return true;
+    public boolean isWhitelisted() {
+        return status == ServerStatus.FULL || status == ServerStatus.CLOSED;
     }
 
     @Override

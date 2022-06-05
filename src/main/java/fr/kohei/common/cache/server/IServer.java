@@ -3,7 +3,7 @@ package fr.kohei.common.cache.server;
 
 public interface IServer {
 
-    boolean isWhilelisted();
+    boolean isWhitelisted();
 
     ServerType type();
 
