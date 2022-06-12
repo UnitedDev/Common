@@ -1,18 +1,23 @@
 package fr.kohei.common.cache;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
+import java.util.Date;
 import java.util.UUID;
 
+@Setter
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class Report {
 
+    private final Date date;
     private final UUID reportId;
     private final UUID uuid;
     private final UUID reporter;
     private final String message;
-    private final boolean resolved;
+    private boolean resolved;
 
 }
