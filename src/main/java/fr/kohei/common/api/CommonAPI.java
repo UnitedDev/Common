@@ -7,7 +7,7 @@ import fr.kohei.common.messaging.Pidgin;
 
 import java.util.UUID;
 
-public interface CommonAPI extends ProfileAPI, RankAPI, PunishmentAPI {
+public interface CommonAPI extends ProfileAPI, RankAPI, PunishmentAPI, ReportAPI {
 	/**
 	 * Create a CacheMap with player uuid as key,
 	 * Use it for your custom game or data
