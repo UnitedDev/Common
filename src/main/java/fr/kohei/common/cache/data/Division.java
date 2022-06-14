@@ -40,7 +40,7 @@ public enum Division {
         // TODO RANK FOR 30 DAYS
     }, "&fVous avez obtenu le grade &c<grade> &fpour &c30 jours&f."),
 
-    MAITRE("&dMaitre", 10000000, profile -> {}, "");
+    MAITRE("&dMaitre", Integer.MAX_VALUE, profile -> {}, "");
 
     private final String display;
     private final int experience;
