@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Ranks {
 
-    ADMIN("&4&lADMIN&4", 1000),
-    RESP("&c&lRESP&c", 100),
-    DEV("&e&lDEV&e", 90),
+    ADMIN("&4&lADMIN&4", 100000),
+    RESP("&c&lRESP&c", 10000),
+    DEV("&e&lDEV&e", 9999),
     MODPLUS("&9&lMOD+&9", 41),
     MOD("&9&lMOD&9", 40),
     MODTEST("&3&lMOD&3", 39),
