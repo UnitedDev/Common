@@ -1,12 +1,13 @@
 package fr.kohei.common.api;
 
-import fr.kohei.common.cache.PunishmentData;
+import fr.kohei.common.cache.data.PunishmentData;
 
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 public interface PunishmentAPI {
-    List<PunishmentData> getPunishments();
+    Queue<PunishmentData> getPunishments();
 
     List<PunishmentData> getPunishments(UUID uuid);
 
