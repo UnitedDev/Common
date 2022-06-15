@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class Pidgin {
@@ -54,7 +55,7 @@ public class Pidgin {
     }
 
     public void sendPacket(Packet packet) {
-        CommonProvider.getInstance().getExecutor().execute(() ->
+        CompletableFuture.runAsync(() ->
                 this.topic.publish(types.get(packet.getClass()) + ";" + gson.toJson(packet))
         );
     }
@@ -62,7 +63,7 @@ public class Pidgin {
     private class MessagingListener implements MessageListener<String> {
         @Override
         public void onMessage(CharSequence charSequence, String s) {
-            CommonProvider.getInstance().getExecutor().execute(() -> {
+            CompletableFuture.runAsync(() -> {
                 try {
                     String id = s.split(";")[0];
                     Packet packet = gson.fromJson(s.split(";")[1], cTypes.get(id));

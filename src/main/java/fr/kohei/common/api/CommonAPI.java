@@ -6,7 +6,7 @@ import fr.kohei.common.utils.messaging.Pidgin;
 
 import java.util.UUID;
 
-public interface CommonAPI extends ProfileAPI, RankAPI, PunishmentAPI, ReportAPI {
+public interface CommonAPI extends ProfileAPI, RankAPI, PunishmentAPI, ReportAPI, WarnAPI {
 	void deleteAllDataFromAPlayer(UUID uuid);
 
 	ServerCache getServerCache();

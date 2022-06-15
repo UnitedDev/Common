@@ -6,6 +6,7 @@ import fr.kohei.common.api.CommonAPI;
 import fr.kohei.common.cache.data.ProfileData;
 import fr.kohei.common.cache.data.PunishmentData;
 import fr.kohei.common.cache.data.Report;
+import fr.kohei.common.cache.data.Warn;
 import fr.kohei.common.cache.rank.Rank;
 import fr.kohei.common.cache.rank.Ranks;
 import fr.kohei.common.cache.server.ServerCache;
@@ -30,7 +31,6 @@ public class CommonProvider implements CommonAPI {
 
     private final Pidgin messaging;
     private final ProfileData defaultProfile;
-    private final Executor executor;
     private final ServerCache serverCache;
     private final MongoManager mongoManager;
 
@@ -38,6 +38,7 @@ public class CommonProvider implements CommonAPI {
     public final Queue<PunishmentData> punishments;
     public final Queue<Rank> ranks;
     public final Queue<Report> reports;
+    public final Queue<Warn> warns;
 
     public CommonProvider() {
         instance = this;
@@ -46,13 +47,13 @@ public class CommonProvider implements CommonAPI {
         this.punishments = new ConcurrentLinkedQueue<>();
         this.ranks = new ConcurrentLinkedQueue<>();
         this.reports = new ConcurrentLinkedQueue<>();
+        this.warns = new ConcurrentLinkedQueue<>();
 
         this.mongoManager = new MongoManager(this);
         this.messaging = new Pidgin("kohei-dev");
         this.serverCache = new ServerCache();
-        this.executor = Executors.newScheduledThreadPool(3);
 
-        if(Ranks.values().length > ranks.size()) {
+        if (Ranks.values().length > ranks.size()) {
             for (Ranks value : Ranks.values()) {
                 Rank rank = new Rank(value.name().toLowerCase(), value.getPower(), value.getPrefix(), value.getPrefix());
 
@@ -98,11 +99,18 @@ public class CommonProvider implements CommonAPI {
     @Override
     public ProfileData getProfile(UUID uuid) {
         if (!players.containsKey(uuid)) {
-            saveProfile(uuid, defaultProfile);
+            Document document = getMongoManager().getProfileCollection().find(Filters.eq("_id", uuid.toString())).first();
+            if (document == null) {
+                saveProfile(uuid, defaultProfile);
+            } else {
+                ProfileData profile = GsonProvider.GSON.fromJson(document.getString("data"), ProfileData.class);
+                saveProfile(uuid, profile);
+            }
         }
 
         return players.get(uuid);
     }
+
 
     @Override
     public void saveProfile(UUID uuid, ProfileData data) {
@@ -168,5 +176,27 @@ public class CommonProvider implements CommonAPI {
         );
 
         getMessaging().sendPacket(new ReportUpdatePacket(report));
+    }
+
+    @Override
+    public List<Warn> getWarns(UUID uuid) {
+        return this.getWarns().stream().filter(warn -> warn.getWarnId().equals(uuid)).collect(Collectors.toList());
+    }
+
+    @Override
+    public void addWarn(Warn warn) {
+        warns.add(warn);
+
+        this.getMongoManager().getWarnsCollection().insertOne(
+                new Document("data", GsonProvider.GSON.toJson(warn))
+                        .append("_id", warn.getWarnId())
+        );
+    }
+
+    @Override
+    public void removeWarn(Warn warn) {
+        warns.removeIf(w -> w.getWarnId().equals(warn.getWarnId()));
+
+        this.getMongoManager().getWarnsCollection().deleteOne(new Document("_id", warn.getWarnId()));
     }
 }

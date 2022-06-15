@@ -8,6 +8,7 @@ import fr.kohei.common.CommonProvider;
 import fr.kohei.common.cache.data.ProfileData;
 import fr.kohei.common.cache.data.PunishmentData;
 import fr.kohei.common.cache.data.Report;
+import fr.kohei.common.cache.data.Warn;
 import fr.kohei.common.cache.rank.Rank;
 import fr.kohei.common.utils.gson.GsonProvider;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class MongoManager {
     private final MongoCollection<Document> ranksCollection;
     private final MongoCollection<Document> reportsCollection;
     private final MongoCollection<Document> punishmentsCollection;
+    private final MongoCollection<Document> warnsCollection;
 
     public MongoManager(CommonProvider provider) {
         this.mongoClient = new MongoClient(new MongoClientURI(new MongoShard("localhost", 27017).getURI()));
@@ -33,6 +35,7 @@ public class MongoManager {
         this.ranksCollection = database.getCollection("ranks");
         this.reportsCollection = database.getCollection("reports");
         this.punishmentsCollection = database.getCollection("punishments");
+        this.warnsCollection = database.getCollection("warns");
 
         this.loadData(provider);
     }
@@ -40,10 +43,11 @@ public class MongoManager {
     private void loadData(CommonProvider provider) {
 
         for (Document document : this.getProfileCollection().find()) {
-            provider.getPlayers().put(
-                    UUID.fromString(document.getString("_id")),
-                    GsonProvider.GSON.fromJson(document.getString("data"), ProfileData.class)
-            );
+            ProfileData profile = GsonProvider.GSON.fromJson(document.getString("data"), ProfileData.class);
+            UUID uuid = UUID.fromString(document.getString("_id"));
+            if (System.currentTimeMillis() - profile.getLastLogin().getTime() <= 86400000L) {
+                provider.getPlayers().put(uuid, profile);
+            }
         }
 
         for (Document document : this.getRanksCollection().find()) {
@@ -61,6 +65,12 @@ public class MongoManager {
         for (Document document : this.getPunishmentsCollection().find()) {
             provider.getPunishments().add(
                     GsonProvider.GSON.fromJson(document.getString("data"), PunishmentData.class)
+            );
+        }
+
+        for (Document document : this.getWarnsCollection().find()) {
+            provider.getWarns().add(
+                    GsonProvider.GSON.fromJson(document.getString("data"), Warn.class)
             );
         }
     }
