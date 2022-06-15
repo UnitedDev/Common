@@ -1,7 +1,6 @@
 package fr.kohei.common.utils.messaging;
 
 import com.google.gson.Gson;
-import fr.kohei.common.CommonProvider;
 import fr.kohei.common.utils.messaging.list.packets.*;
 import fr.kohei.common.utils.messaging.list.subscribers.*;
 import fr.kohei.common.utils.messaging.pigdin.IncomingPacketHandler;
@@ -45,6 +44,8 @@ public class Pidgin {
         this.registerAdapter(LobbyUpdatePacket.class, new LobbyUpdateSubscriber());
         this.registerAdapter(UHCUpdatePacket.class, new UHCUpdateSubscriber());
         this.registerAdapter(CTFUpdatePacket.class, new CTFUpdateSubscriber());
+        this.registerAdapter(ReportUpdatePacket.class, new ReportUpdateSubscriber());
+        this.registerAdapter(WarnUpdatePacket.class, new WarnUpdateSubscriber());
     }
 
     public void registerAdapter(Class<? extends Packet> clazz, PacketListener listener) {

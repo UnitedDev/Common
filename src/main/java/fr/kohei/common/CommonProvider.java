@@ -180,7 +180,7 @@ public class CommonProvider implements CommonAPI {
 
     @Override
     public List<Warn> getWarns(UUID uuid) {
-        return this.getWarns().stream().filter(warn -> warn.getWarnId().equals(uuid)).collect(Collectors.toList());
+        return this.getWarns().stream().filter(warn -> warn.getPlayerId().equals(uuid)).collect(Collectors.toList());
     }
 
     @Override
