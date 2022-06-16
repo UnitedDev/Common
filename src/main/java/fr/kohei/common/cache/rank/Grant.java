@@ -52,4 +52,8 @@ public class Grant implements Serializable {
         else return (duration + executedAt) - System.currentTimeMillis();
     }
 
+    public String getRemainingTimeString() {
+        return TimeUtil.millisToRoundedTime(getRemainingTime());
+    }
+
 }

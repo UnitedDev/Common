@@ -9,13 +9,13 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
 public class ProfileData implements Serializable {
     UUID uuid;
     private String displayName;
-    private List<Grant> grants;
     private int coins, hosts;
     private String language;
     private List<String> silentPlayer;
@@ -36,7 +36,6 @@ public class ProfileData implements Serializable {
     public ProfileData(UUID uuid, int coins, int hosts, String language) {
         this.uuid = uuid;
         this.displayName = "";
-        this.grants = CommonProvider.getInstance().getGrants(uuid);
         this.coins = coins;
         this.hosts = hosts;
         this.language = language;
@@ -55,6 +54,14 @@ public class ProfileData implements Serializable {
     }
 
     public Rank getRank() {
-        return getGrants().stream().min(new GrantComparator()).orElse(CommonProvider.getInstance().newDefaultGrant(uuid)).getRank();
+        return getGrants().stream().filter(Grant::isActive).min(new GrantComparator()).orElse(CommonProvider.getInstance().newDefaultGrant(uuid)).getRank();
+    }
+
+    public List<Grant> getGrants() {
+        return CommonProvider.getInstance().getGrants(this.uuid);
+    }
+
+    public List<Grant> getActiveGrants() {
+        return getGrants().stream().filter(Grant::isActive).collect(Collectors.toList());
     }
 }
