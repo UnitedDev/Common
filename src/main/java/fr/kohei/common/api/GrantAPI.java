@@ -9,6 +9,8 @@ public interface GrantAPI {
 
     List<Grant> getGrants(UUID uuid);
 
+    Grant getGrantFromId(UUID grantId);
+
     Grant newDefaultGrant(UUID player);
 
     void refreshGrants();

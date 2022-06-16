@@ -212,6 +212,11 @@ public class CommonProvider implements CommonAPI {
     }
 
     @Override
+    public Grant getGrantFromId(UUID grantId) {
+        return getGrants().stream().filter(o -> o.getGrantId().equals(grantId)).findFirst().orElse(null);
+    }
+
+    @Override
     public Grant newDefaultGrant(UUID player) {
         Grant grant = new Grant(player,
                 UUID.fromString("00000000-0000-0000-0000-000000000000"),
@@ -236,6 +241,10 @@ public class CommonProvider implements CommonAPI {
     public void addGrant(Grant grant) {
         grants.add(grant);
 
+        ProfileData data = getProfile(grant.getUser());
+        data.getGrants().add(grant);
+        saveProfile(data.getUuid(), data);
+
         this.getMongoManager().getGrantsCollection().insertOne(
                 new Document("data", GsonProvider.GSON.toJson(grant))
                         .append("_id", grant.getGrantId()));
@@ -245,6 +254,11 @@ public class CommonProvider implements CommonAPI {
     public void updateGrant(Grant grant) {
         grants.removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
         grants.add(grant);
+
+        ProfileData data = getProfile(grant.getUser());
+        data.getGrants().removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
+        data.getGrants().add(grant);
+        saveProfile(data.getUuid(), data);
 
         this.getMongoManager().getGrantsCollection().replaceOne(
                 Filters.eq("_id", grant.getGrantId()),
@@ -257,6 +271,10 @@ public class CommonProvider implements CommonAPI {
     @Override
     public void removeGrant(Grant grant) {
         grants.removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
+
+        ProfileData data = getProfile(grant.getUser());
+        data.getGrants().removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
+        saveProfile(data.getUuid(), data);
 
         this.getMongoManager().getGrantsCollection().deleteOne(new Document("_id", grant.getGrantId()));
     }

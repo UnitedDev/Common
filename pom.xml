@@ -6,7 +6,7 @@
 
     <groupId>fr.kohei</groupId>
     <artifactId>common</artifactId>
-    <version>2.1.0-alpha</version>
+    <version>2.1.0-alpha-fix</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
