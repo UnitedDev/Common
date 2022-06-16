@@ -9,6 +9,7 @@ import fr.kohei.common.cache.data.ProfileData;
 import fr.kohei.common.cache.data.PunishmentData;
 import fr.kohei.common.cache.data.Report;
 import fr.kohei.common.cache.data.Warn;
+import fr.kohei.common.cache.rank.Grant;
 import fr.kohei.common.cache.rank.Rank;
 import fr.kohei.common.utils.gson.GsonProvider;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class MongoManager {
     private final MongoClient mongoClient;
     private final MongoDatabase database;
 
+    private final MongoCollection<Document> grantsCollection;
     private final MongoCollection<Document> profileCollection;
     private final MongoCollection<Document> ranksCollection;
     private final MongoCollection<Document> reportsCollection;
@@ -31,6 +33,7 @@ public class MongoManager {
         this.mongoClient = new MongoClient(new MongoClientURI(new MongoShard("localhost", 27017).getURI()));
         this.database = mongoClient.getDatabase("kohei");
 
+        this.grantsCollection = database.getCollection("grants");
         this.profileCollection = database.getCollection("profile");
         this.ranksCollection = database.getCollection("ranks");
         this.reportsCollection = database.getCollection("reports");
@@ -41,6 +44,12 @@ public class MongoManager {
     }
 
     private void loadData(CommonProvider provider) {
+
+        for (Document document : this.getGrantsCollection().find()) {
+            provider.getGrants().add(
+                    GsonProvider.GSON.fromJson(document.getString("data"), Grant.class)
+            );
+        }
 
         for (Document document : this.getProfileCollection().find()) {
             ProfileData profile = GsonProvider.GSON.fromJson(document.getString("data"), ProfileData.class);
