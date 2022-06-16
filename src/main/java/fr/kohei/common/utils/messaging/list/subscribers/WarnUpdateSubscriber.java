@@ -13,7 +13,7 @@ public class WarnUpdateSubscriber implements PacketListener {
     public void onReceive(WarnUpdatePacket packet) {
         if (CommonProvider.getInstance().getWarns().stream()
                 .noneMatch(warn -> warn.getWarnId().equals(packet.getWarn().getWarnId()))) {
-            CommonProvider.getInstance().addWarn(packet.getWarn());
+            CommonProvider.getInstance().getWarns().add(packet.getWarn());
         }
     }
 
