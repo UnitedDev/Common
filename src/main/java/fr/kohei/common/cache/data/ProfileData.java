@@ -1,21 +1,21 @@
 package fr.kohei.common.cache.data;
 
 import fr.kohei.common.CommonProvider;
+import fr.kohei.common.cache.rank.Grant;
 import fr.kohei.common.cache.rank.Rank;
+import fr.kohei.common.utils.GrantComparator;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
 public class ProfileData implements Serializable {
+    UUID uuid;
     private String displayName;
-    private String rankName;
     private int coins, hosts;
     private String language;
     private List<String> silentPlayer;
@@ -33,9 +33,9 @@ public class ProfileData implements Serializable {
 
     private final HashMap<String, Object> serversData;
 
-    public ProfileData(Rank rank, int coins, int hosts, String language) {
+    public ProfileData(UUID uuid, int coins, int hosts, String language) {
+        this.uuid = uuid;
         this.displayName = "";
-        this.rankName = rank.token();
         this.coins = coins;
         this.hosts = hosts;
         this.language = language;
@@ -54,6 +54,14 @@ public class ProfileData implements Serializable {
     }
 
     public Rank getRank() {
-        return CommonProvider.getInstance().getRanks().stream().filter(rank -> rank.token().equalsIgnoreCase(rankName)).findFirst().orElse(CommonProvider.getInstance().getRank("default"));
+        return getGrants().stream().filter(Grant::isActive).min(new GrantComparator()).orElse(CommonProvider.getInstance().newDefaultGrant(uuid)).getRank();
+    }
+
+    public List<Grant> getGrants() {
+        return CommonProvider.getInstance().getGrants(this.uuid);
+    }
+
+    public List<Grant> getActiveGrants() {
+        return getGrants().stream().filter(Grant::isActive).collect(Collectors.toList());
     }
 }

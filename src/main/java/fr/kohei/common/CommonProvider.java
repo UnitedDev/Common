@@ -7,9 +7,11 @@ import fr.kohei.common.cache.data.ProfileData;
 import fr.kohei.common.cache.data.PunishmentData;
 import fr.kohei.common.cache.data.Report;
 import fr.kohei.common.cache.data.Warn;
+import fr.kohei.common.cache.rank.Grant;
 import fr.kohei.common.cache.rank.Rank;
 import fr.kohei.common.cache.rank.Ranks;
 import fr.kohei.common.cache.server.ServerCache;
+import fr.kohei.common.utils.TimeUtil;
 import fr.kohei.common.utils.gson.GsonProvider;
 import fr.kohei.common.utils.messaging.Pidgin;
 import fr.kohei.common.utils.messaging.list.packets.ProfileUpdatePacket;
@@ -39,6 +41,7 @@ public class CommonProvider implements CommonAPI {
     public final Queue<Rank> ranks;
     public final Queue<Report> reports;
     public final Queue<Warn> warns;
+    public final Queue<Grant> grants;
 
     public CommonProvider() {
         instance = this;
@@ -48,6 +51,7 @@ public class CommonProvider implements CommonAPI {
         this.ranks = new ConcurrentLinkedQueue<>();
         this.reports = new ConcurrentLinkedQueue<>();
         this.warns = new ConcurrentLinkedQueue<>();
+        this.grants = new ConcurrentLinkedQueue<>();
 
         this.mongoManager = new MongoManager(this);
         this.messaging = new Pidgin("kohei-dev");
@@ -61,7 +65,7 @@ public class CommonProvider implements CommonAPI {
             }
         }
 
-        this.defaultProfile = new ProfileData(getRank("default"), 0, 0, "fr");
+        this.defaultProfile = new ProfileData(null, 0, 0, "fr");
     }
 
     @Override
@@ -114,6 +118,7 @@ public class CommonProvider implements CommonAPI {
 
     @Override
     public void saveProfile(UUID uuid, ProfileData data) {
+        data.setUuid(uuid);
         players.put(uuid, data);
         this.getMongoManager().getProfileCollection().replaceOne(
                 Filters.eq("_id", uuid.toString()),
@@ -202,5 +207,65 @@ public class CommonProvider implements CommonAPI {
         CompletableFuture.runAsync(() ->
                 this.getMongoManager().getWarnsCollection().deleteOne(new Document("_id", warn.getWarnId()))
         );
+    }
+
+    @Override
+    public List<Grant> getGrants(UUID uuid) {
+        return getGrants().stream().filter(grant -> grant.getUser().equals(uuid)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Grant getGrantFromId(UUID grantId) {
+        return getGrants().stream().filter(o -> o.getGrantId().equals(grantId)).findFirst().orElse(null);
+    }
+
+    @Override
+    public Grant newDefaultGrant(UUID player) {
+        Grant grant = new Grant(player,
+                UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                getRank("default"),
+                TimeUtil.PERMANENT
+        );
+        addGrant(grant);
+        return grant;
+    }
+
+    @Override
+    public void refreshGrants() {
+        for (Grant o : getGrants()) {
+            if (o.expired()) {
+                o.setActive(false);
+                updateGrant(o);
+            }
+        }
+    }
+
+    @Override
+    public void addGrant(Grant grant) {
+        grants.add(grant);
+
+        this.getMongoManager().getGrantsCollection().insertOne(
+                new Document("data", GsonProvider.GSON.toJson(grant))
+                        .append("_id", grant.getGrantId()));
+    }
+
+    @Override
+    public void updateGrant(Grant grant) {
+        grants.removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
+        grants.add(grant);
+
+        this.getMongoManager().getGrantsCollection().replaceOne(
+                Filters.eq("_id", grant.getGrantId()),
+                new Document("data", GsonProvider.GSON.toJson(grant))
+                        .append("_id", grant.getGrantId()),
+                new ReplaceOptions().upsert(true)
+        );
+    }
+
+    @Override
+    public void removeGrant(Grant grant) {
+        grants.removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
+
+        this.getMongoManager().getGrantsCollection().deleteOne(new Document("_id", grant.getGrantId()));
     }
 }
