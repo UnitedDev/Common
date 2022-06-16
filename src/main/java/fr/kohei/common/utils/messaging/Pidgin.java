@@ -46,6 +46,7 @@ public class Pidgin {
         this.registerAdapter(CTFUpdatePacket.class, new CTFUpdateSubscriber());
         this.registerAdapter(ReportUpdatePacket.class, new ReportUpdateSubscriber());
         this.registerAdapter(WarnUpdatePacket.class, new WarnUpdateSubscriber());
+        this.registerAdapter(GrantUpdatePacket.class, new GrantUpdateSubscriber());
     }
 
     public void registerAdapter(Class<? extends Packet> clazz, PacketListener listener) {

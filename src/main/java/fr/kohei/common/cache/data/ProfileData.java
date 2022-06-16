@@ -30,6 +30,7 @@ public class ProfileData implements Serializable {
     private long playTime;
     private final List<String> ips;
     private String link;
+    private boolean staff;
 
     private final HashMap<String, Object> serversData;
 

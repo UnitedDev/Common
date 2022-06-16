@@ -14,10 +14,7 @@ import fr.kohei.common.cache.server.ServerCache;
 import fr.kohei.common.utils.TimeUtil;
 import fr.kohei.common.utils.gson.GsonProvider;
 import fr.kohei.common.utils.messaging.Pidgin;
-import fr.kohei.common.utils.messaging.list.packets.ProfileUpdatePacket;
-import fr.kohei.common.utils.messaging.list.packets.PunishmentUpdatePacket;
-import fr.kohei.common.utils.messaging.list.packets.RankUpdatePacket;
-import fr.kohei.common.utils.messaging.list.packets.ReportUpdatePacket;
+import fr.kohei.common.utils.messaging.list.packets.*;
 import fr.kohei.common.utils.mongo.MongoManager;
 import lombok.Getter;
 import org.bson.Document;
@@ -244,6 +241,7 @@ public class CommonProvider implements CommonAPI {
     public void addGrant(Grant grant) {
         grants.add(grant);
 
+        getMessaging().sendPacket(new GrantUpdatePacket(grant, false));
         this.getMongoManager().getGrantsCollection().insertOne(
                 new Document("data", GsonProvider.GSON.toJson(grant))
                         .append("_id", grant.getGrantId()));
@@ -254,6 +252,7 @@ public class CommonProvider implements CommonAPI {
         grants.removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
         grants.add(grant);
 
+        getMessaging().sendPacket(new GrantUpdatePacket(grant, false));
         this.getMongoManager().getGrantsCollection().replaceOne(
                 Filters.eq("_id", grant.getGrantId()),
                 new Document("data", GsonProvider.GSON.toJson(grant))
@@ -266,6 +265,7 @@ public class CommonProvider implements CommonAPI {
     public void removeGrant(Grant grant) {
         grants.removeIf(o -> o.getGrantId().equals(grant.getGrantId()));
 
+        getMessaging().sendPacket(new GrantUpdatePacket(grant, true));
         this.getMongoManager().getGrantsCollection().deleteOne(new Document("_id", grant.getGrantId()));
     }
 }
