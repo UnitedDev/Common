@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class ProfileData implements Serializable {
-    UUID uuid;
     private String displayName;
     private int coins, hosts;
     private String language;
@@ -31,15 +30,15 @@ public class ProfileData implements Serializable {
     private final List<String> ips;
     private String link;
     private boolean staff;
+    private boolean vanish;
 
     private final HashMap<String, Object> serversData;
 
-    public ProfileData(UUID uuid, int coins, int hosts, String language) {
-        this.uuid = uuid;
+    public ProfileData() {
         this.displayName = "";
-        this.coins = coins;
-        this.hosts = hosts;
-        this.language = language;
+        this.coins = 0;
+        this.hosts = 0;
+        this.language = "fr";
         this.silentPlayer = new ArrayList<>();
         this.friends = new ArrayList<>();
         this.friendRequests = true;
@@ -55,14 +54,20 @@ public class ProfileData implements Serializable {
     }
 
     public Rank getRank() {
-        return getGrants().stream().filter(Grant::isActive).min(new GrantComparator()).orElse(CommonProvider.getInstance().newDefaultGrant(uuid)).getRank();
+        return getGrants().stream().filter(Grant::isActive).min(new GrantComparator()).orElse(CommonProvider.getInstance().newDefaultGrant(getUniqueId())).getRank();
     }
 
     public List<Grant> getGrants() {
-        return CommonProvider.getInstance().getGrants(this.uuid);
+        return CommonProvider.getInstance().getGrants(this.getUniqueId());
     }
 
     public List<Grant> getActiveGrants() {
         return getGrants().stream().filter(Grant::isActive).collect(Collectors.toList());
+    }
+
+    public UUID getUniqueId() {
+        Map<UUID, ProfileData> profiles = new HashMap<>(CommonProvider.getInstance().getPlayers());
+        return profiles.keySet().stream().filter(uuid -> profiles.get(uuid).getDisplayName().equalsIgnoreCase(displayName))
+                .findFirst().orElse(null);
     }
 }

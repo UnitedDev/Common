@@ -62,7 +62,7 @@ public class CommonProvider implements CommonAPI {
             }
         }
 
-        this.defaultProfile = new ProfileData(null, 0, 0, "fr");
+        this.defaultProfile = new ProfileData();
     }
 
     @Override
@@ -115,7 +115,6 @@ public class CommonProvider implements CommonAPI {
 
     @Override
     public void saveProfile(UUID uuid, ProfileData data) {
-        data.setUuid(uuid);
         players.put(uuid, data);
         this.getMongoManager().getProfileCollection().replaceOne(
                 Filters.eq("_id", uuid.toString()),
