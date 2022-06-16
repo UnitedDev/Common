@@ -9,7 +9,8 @@ public class ReportUpdateSubscriber implements PacketListener {
 
     @IncomingPacketHandler
     public void onReceive(ReportUpdatePacket packet) {
-        CommonProvider.getInstance().updateReport(packet.getReport());
+        CommonProvider.getInstance().getReports().removeIf(r -> r.getReportId().equals(packet.getReport().getReportId()));
+        CommonProvider.getInstance().getReports().add(packet.getReport());
     }
 
 }

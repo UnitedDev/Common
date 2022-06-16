@@ -6,6 +6,7 @@
 
     <groupId>fr.kohei</groupId>
     <artifactId>common</artifactId>
+  
     <version>2.1.0-alpha2</version>
 
     <properties>

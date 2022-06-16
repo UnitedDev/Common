@@ -173,12 +173,13 @@ public class CommonProvider implements CommonAPI {
     public void updateReport(Report report) {
         reports.removeIf(r -> r.getReportId().equals(report.getReportId()));
         reports.add(report);
-        this.getMongoManager().getReportsCollection().replaceOne(
+
+        CompletableFuture.runAsync(() -> this.getMongoManager().getReportsCollection().replaceOne(
                 Filters.eq("_id", report.getReportId()),
                 new Document("data", GsonProvider.GSON.toJson(report))
                         .append("_id", report.getReportId()),
                 new ReplaceOptions().upsert(true)
-        );
+        ));
 
         getMessaging().sendPacket(new ReportUpdatePacket(report));
     }
@@ -192,9 +193,10 @@ public class CommonProvider implements CommonAPI {
     public void addWarn(Warn warn) {
         warns.add(warn);
 
-        this.getMongoManager().getWarnsCollection().insertOne(
-                new Document("data", GsonProvider.GSON.toJson(warn))
-                        .append("_id", warn.getWarnId())
+        CompletableFuture.runAsync(() ->
+                this.getMongoManager().getWarnsCollection().insertOne(
+                        new Document("data", GsonProvider.GSON.toJson(warn))
+                                .append("_id", warn.getWarnId()))
         );
     }
 
@@ -202,7 +204,9 @@ public class CommonProvider implements CommonAPI {
     public void removeWarn(Warn warn) {
         warns.removeIf(w -> w.getWarnId().equals(warn.getWarnId()));
 
-        this.getMongoManager().getWarnsCollection().deleteOne(new Document("_id", warn.getWarnId()));
+        CompletableFuture.runAsync(() ->
+                this.getMongoManager().getWarnsCollection().deleteOne(new Document("_id", warn.getWarnId()))
+        );
     }
 
     @Override
