@@ -54,9 +54,9 @@ public class MongoManager {
         for (Document document : this.getProfileCollection().find()) {
             ProfileData profile = GsonProvider.GSON.fromJson(document.getString("data"), ProfileData.class);
             UUID uuid = UUID.fromString(document.getString("_id"));
-            if (System.currentTimeMillis() - profile.getLastLogin().getTime() <= 86400000L) {
+//            if (System.currentTimeMillis() - profile.getLastLogin().getTime() <= 86400000L) {
                 provider.getPlayers().put(uuid, profile);
-            }
+//            }
         }
 
         for (Document document : this.getRanksCollection().find()) {

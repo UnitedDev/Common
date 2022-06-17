@@ -18,7 +18,6 @@ public class ProfileData implements Serializable {
     private int coins, hosts;
     private String language;
     private List<String> silentPlayer;
-    private List<String> friends;
     private boolean friendRequests;
     private boolean privateMessages;
     private boolean notifications;
@@ -40,7 +39,6 @@ public class ProfileData implements Serializable {
         this.hosts = 0;
         this.language = "fr";
         this.silentPlayer = new ArrayList<>();
-        this.friends = new ArrayList<>();
         this.friendRequests = true;
         this.privateMessages = true;
         this.notifications = true;
@@ -54,7 +52,7 @@ public class ProfileData implements Serializable {
     }
 
     public Rank getRank() {
-        return getGrants().stream().filter(Grant::isActive).min(new GrantComparator()).orElse(CommonProvider.getInstance().newDefaultGrant(getUniqueId())).getRank();
+        return getGrants().stream().filter(Grant::isActive).max(new GrantComparator()).orElseGet(() -> CommonProvider.getInstance().newDefaultGrant(getUniqueId())).getRank();
     }
 
     public List<Grant> getGrants() {
