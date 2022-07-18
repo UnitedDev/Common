@@ -30,7 +30,9 @@ public class MongoManager {
     private final MongoCollection<Document> warnsCollection;
 
     public MongoManager(CommonProvider provider) {
-        this.mongoClient = new MongoClient(new MongoClientURI(new MongoShard("localhost", 27017).getURI()));
+        MongoShard mongoShard = new MongoShard("localhost", 27017, "kohei", "///");
+
+        this.mongoClient = new MongoClient(new MongoClientURI(mongoShard.getURI()));
         this.database = mongoClient.getDatabase("kohei");
 
         this.grantsCollection = database.getCollection("grants");

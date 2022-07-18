@@ -11,6 +11,7 @@ import org.redisson.Redisson;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.listener.MessageListener;
+import org.redisson.config.Config;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,7 +31,13 @@ public class Pidgin {
     private final HashMap<String, Class<? extends Packet>> cTypes;
 
     public Pidgin(String topic) {
-        this.client = Redisson.create();
+        final Config config = new Config();
+        config.useSentinelServers()
+                .setTimeout(1000000)
+                .setPassword("//")
+                .setMasterName("kohei");
+
+        this.client = Redisson.create(config);
         this.topic = this.client.getTopic(topic);
 
         this.adapters = new HashMap<>();

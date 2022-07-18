@@ -30,6 +30,7 @@ public class ProfileData implements Serializable {
     private String link;
     private boolean staff;
     private boolean vanish;
+    private int box;
 
     private final HashMap<String, Object> serversData;
 
@@ -49,6 +50,7 @@ public class ProfileData implements Serializable {
         this.ips = new ArrayList<>();
         this.link = "";
         this.lastLogin = new Date();
+        this.box = 0;
     }
 
     public Rank getRank() {
