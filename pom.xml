@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.kohei</groupId>
+    <groupId>fr.uniteduhc</groupId>
     <artifactId>common</artifactId>
   
-    <version>2.1.1-alpha</version>
+    <version>3.0.0</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -49,9 +49,9 @@
 
     <distributionManagement>
         <repository>
-            <id>kohei</id>
+            <id>united</id>
             <name>Common</name>
-            <url>https://maven.pkg.github.com/KoheiDev/Common/</url>
+            <url>https://maven.pkg.github.com/UnitedDev/Common/</url>
         </repository>
     </distributionManagement>
 

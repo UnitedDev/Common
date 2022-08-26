@@ -15,7 +15,7 @@ Exemple de fichier `settings.xml`
   
   <servers>
     <server>
-      <id>kohei</id>
+      <id>uniteduhc</id>
       <username>Rhodless</username>
       <password>mon_super_token</password>
     </server>
@@ -28,14 +28,14 @@ Exemple de fichier `settings.xml`
  
 ```xml
 <repository>
-  <id>kohei</id>
-  <url>https://maven.pkg.github.com/KoheiDev/Common</url>
+  <id>uniteduhc</id>
+  <url>https://maven.pkg.github.com/UnitedDev/Common</url>
 </repository>
 ```
    
 ```xml
 <dependency>
-  <groupId>fr.kohei</groupId>
+  <groupId>fr.uniteduhc</groupId>
   <artifactId>common</artifactId>
   <version>VERSION</version>
 </dependency>
